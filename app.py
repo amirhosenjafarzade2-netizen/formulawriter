@@ -21,6 +21,8 @@ if "compute_result" not in st.session_state:
     st.session_state.compute_result = None
 if "compute_error" not in st.session_state:
     st.session_state.compute_error = ""
+if "debug_message" not in st.session_state:
+    st.session_state.debug_message = ""
 
 # Define mathematical symbols grouped by categories
 categories = {
@@ -49,6 +51,7 @@ categories = {
         ("∫ dx", "\\int dx "),
         ("d/dx", "\\frac{d}{dx} "),
         ("∂", "\\partial "),
+        ("lim", "\\lim_{{ \\to }} "),
     ],
     "Sums & Products": [
         ("∑", "\\sum_{{}}^{{}} "),
@@ -59,6 +62,8 @@ categories = {
         ("sin", "\\sin "),
         ("cos", "\\cos "),
         ("tan", "\\tan "),
+        ("arcsin", "\\arcsin "),
+        ("arccos", "\\arccos "),
     ],
     "Greek Letters": [
         ("α", "\\alpha "),
@@ -66,15 +71,20 @@ categories = {
         ("γ", "\\gamma "),
         ("θ", "\\theta "),
         ("π", "\\pi "),
+        ("σ", "\\sigma "),
+        ("Δ", "\\Delta "),
     ],
-    "Relations": [
+    "Relations & Symbols": [
         ("≠", "\\neq "),
         ("≈", "\\approx "),
         ("≤", "\\leq "),
         ("≥", "\\geq "),
+        ("∈", "\\in "),
+        ("∞", "\\infty "),
     ],
     "Matrices": [
         ("2×2 matrix", "\\begin{{matrix}} a & b \\\\ c & d \\end{{matrix}}"),
+        ("3×3 matrix", "\\begin{{matrix}} a & b & c \\\\ d & e & f \\\\ g & h & i \\end{{matrix}}"),
         ("pmatrix", "\\begin{{pmatrix}}  &  \\\\  &  \\end{{pmatrix}}"),
     ],
 }
@@ -82,18 +92,22 @@ categories = {
 st.title("LaTeX Formula Builder")
 
 st.write("""
-Type or use buttons to build your LaTeX formula. The rendered result appears below in the preview box.
+Type or use buttons to build your LaTeX formula. The preview below shows the rendered result.
 Structures like ^{{}}, \\frac{{}}{{}} have placeholders ({{}}). Click inside {{}} to edit.
-**Important**: Computation may fail for complex LaTeX (e.g., \\sum, \\prod, matrices, nested fractions like \\frac{\\frac{a}{b}}{c}).
-Use simple expressions (e.g., \\frac{1}{x}, \\int x^2 dx) for computation.
+**Important**: Computation fails for complex LaTeX (e.g., \\sum, \\prod, matrices, nested fractions like \\\\frac{{ \\\\frac{{a}}{{b}} }}{{c}}).
+Use simple expressions (e.g., \\int x^2 dx, \\frac{1}{x}) for computation.
 For matrices, use symbolic variables and compute manually in SymPy (e.g., `sp.Matrix([[1,2],[3,4]])`).
 **Note**: If buttons don't update the text area, click slowly or type directly.
 """)
 
+# Debug message for button clicks
+if st.session_state.debug_message:
+    st.info(st.session_state.debug_message)
+
 # Display buttons grouped by categories
 for cat_name, sym_list in categories.items():
     with st.expander(cat_name, expanded=True):
-        num_cols = min(4, len(sym_list))  # Reduced columns for better layout
+        num_cols = min(4, len(sym_list))  # Compact layout
         cols = st.columns(num_cols)
         for i, (label, latex) in enumerate(sym_list):
             with cols[i % num_cols]:
@@ -101,6 +115,7 @@ for cat_name, sym_list in categories.items():
                     st.session_state.formula += latex
                     st.session_state.compute_result = None
                     st.session_state.compute_error = ""
+                    st.session_state.debug_message = f"Added: {latex}"
                     # Auto-focus first placeholder
                     if "{{}}" in latex:
                         st.markdown(
@@ -125,6 +140,7 @@ for cat_name, sym_list in categories.items():
 def on_formula_change():
     st.session_state.compute_result = None
     st.session_state.compute_error = ""
+    st.session_state.debug_message = ""
 
 formula_input = st.text_area(
     "LaTeX Formula (type or use buttons)",
@@ -144,7 +160,7 @@ else:
         st.latex(f"$$ {st.session_state.formula} $$")
         st.session_state.compute_error = ""
     except Exception as e:
-        st.error(f"Error rendering LaTeX: {str(e)}. Ensure braces are balanced and avoid complex structures (e.g., nested fractions like \\frac{\\frac{a}{b}}{c}).")
+        st.error(f"Error rendering LaTeX: {str(e)}. Ensure braces are balanced and avoid complex structures (e.g., nested fractions like \\\\frac{{ \\\\frac{{a}}{{b}} }}{{c}}).")
 
 # Computation section
 st.subheader("Compute Answer (Optional)")
@@ -237,5 +253,6 @@ if st.button("Clear Formula"):
     st.session_state.copied = False
     st.session_state.compute_result = None
     st.session_state.compute_error = ""
+    st.session_state.debug_message = ""
     st.experimental_rerun()
 

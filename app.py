@@ -23,6 +23,8 @@ if "compute_error" not in st.session_state:
     st.session_state.compute_error = ""
 if "debug_message" not in st.session_state:
     st.session_state.debug_message = ""
+if "compute_mode" not in st.session_state:
+    st.session_state.compute_mode = "Simplify"
 
 # Define mathematical symbols grouped by categories
 categories = {
@@ -34,6 +36,8 @@ categories = {
         ("=", "= "),
         ("(", "\\left( "),
         (")", "\\right) "),
+        ("[", "\\left[ "),
+        ("]", "\\right] "),
     ],
     "Superscript/Subscript": [
         ("^", "^{{}}"),
@@ -64,6 +68,7 @@ categories = {
         ("tan", "\\tan "),
         ("arcsin", "\\arcsin "),
         ("arccos", "\\arccos "),
+        ("arctan", "\\arctan "),
     ],
     "Greek Letters": [
         ("α", "\\alpha "),
@@ -73,6 +78,7 @@ categories = {
         ("π", "\\pi "),
         ("σ", "\\sigma "),
         ("Δ", "\\Delta "),
+        ("λ", "\\lambda "),
     ],
     "Relations & Symbols": [
         ("≠", "\\neq "),
@@ -81,6 +87,9 @@ categories = {
         ("≥", "\\geq "),
         ("∈", "\\in "),
         ("∞", "\\infty "),
+        ("∀", "\\forall "),
+        ("∃", "\\exists "),
+        ("→", "\\rightarrow "),
     ],
     "Matrices": [
         ("2×2 matrix", "\\begin{{matrix}} a & b \\\\ c & d \\end{{matrix}}"),
@@ -119,18 +128,18 @@ for cat_name, sym_list in categories.items():
                     # Auto-focus first placeholder
                     if "{{}}" in latex:
                         st.markdown(
-                            f"""
+                            """
                             <script>
-                            setTimeout(() => {{
+                            setTimeout(() => {
                                 var textarea = document.querySelector('textarea[data-testid="stTextArea"] textarea');
-                                if (textarea) {{
+                                if (textarea) {
                                     textarea.focus();
                                     var pos = textarea.value.lastIndexOf('{{}}');
-                                    if (pos !== -1) {{
+                                    if (pos !== -1) {
                                         textarea.setSelectionRange(pos + 1, pos + 2);
-                                    }}
-                                }}
-                            }}, 100);
+                                    }
+                                }
+                            }, 100);
                             </script>
                             """,
                             unsafe_allow_html=True
@@ -169,12 +178,11 @@ Enter a computable expression (e.g., \\frac{1}{x}, \\int x^2 dx).
 **Limitations**: SymPy cannot parse \\sum, \\prod, matrices, or nested fractions.
 Use 'Simplify' for symbolic results or 'Evaluate Numerically' for decimals (if variables are defined).
 """)
-compute_mode = st.selectbox(
+st.selectbox(
     "Computation Mode",
     ["Simplify", "Evaluate Numerically"],
     key="compute_mode"
 )
-st.session_state.compute_mode = compute_mode
 
 # Variable substitution
 with st.expander("Define Variables (Optional)"):
@@ -255,4 +263,3 @@ if st.button("Clear Formula"):
     st.session_state.compute_error = ""
     st.session_state.debug_message = ""
     st.experimental_rerun()
-

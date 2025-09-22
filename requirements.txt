@@ -1,3 +1,4 @@
-streamlit>=1.20.0
-sympy>=1.12
-pyperclip>=1.8.2
+streamlit==1.39.0
+sympy==1.14.1
+matplotlib==3.9.2
+numpy==2.1.1
